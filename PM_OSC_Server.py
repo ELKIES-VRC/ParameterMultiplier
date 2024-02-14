@@ -109,7 +109,7 @@ def send_message_to_client(address, index, message):
     global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
     print(f'get message {index}: {message}')
     if isinstance(message, float):
-        temp_list = [abs(x - 0.05) for x in float_to_int]
+        temp_list = [abs(x - message) for x in float_to_int]
         send_value = (index[0], temp_list.index(min(temp_list)))
     elif isinstance(message, bool):
         send_value = (index[0], int(message))
