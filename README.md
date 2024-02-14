@@ -37,6 +37,7 @@ OSC를 사용하지 않는 방법도 있으나, 이는 차후 들어오는 유�
 1. 아바타 리셋을 하면 VRChat 캐시 폴더 내부에 저장된 아바타 관련 저장내용이 전부 사라져 OSC 서버가 죽어버리는 문제
 2. 월드 인스턴스에 접속한 이후에 들어오는 사람들에게 파라미터가 자동으로 동기화되지 않는 문제
 3. 사람이 많은 환경에서 알 수 없는 이유로 모든 사람에게 완벽히 파라미터가 동기화되지 않는 문제
+4. 해당 프로젝트는 실시간 동기화가 필요하지 않은 파라미터들(예 : 옷장)을 대상으로 사용하는 것을 전제로 제작되었습니다. 실시간 동기화가 필요한 (예 : 페이셜 트래킹) 파라미터에는 Sync 옵션을 사용해주세요.
 
 ## [English]
 
@@ -75,6 +76,7 @@ There is also a way to not use OSC, but there is a problem that makes it impossi
 1. Resetting an avatar would cause the OSC server to die as all avatar-related saves inside the VRChat cache folder would be lost
 2. Parameters are not automatically synchronized for people who come in after you've joined world instance
 3. Parameters not syncing perfectly for everyone for unknown reasons in a crowded environment
+4. The project is intended to target parameters that do not require real-time synchronization (e.g., closet). Please use Sync options for parameters that require real-time synchronization (e.g., facial tracking).
 
 
 ## License
