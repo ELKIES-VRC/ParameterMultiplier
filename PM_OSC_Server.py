@@ -59,7 +59,15 @@ def reset_avatar_config_from_vrchat_config_folder():
               'r',
               encoding='utf-8-sig') as f:
         avatar_osc_config = json.load(f)
-    with open(find_file_in_path(changed_avatar_id, VRCHAT_AVATAR_PARAMETER_VALUE_SAVED_PATH),
+
+    while True:
+        time.sleep(1)
+        avatar_parameter_value_file_path = find_file_in_path(changed_avatar_id, VRCHAT_AVATAR_PARAMETER_VALUE_SAVED_PATH)
+        print(avatar_parameter_value_file_path)
+        if avatar_parameter_value_file_path:
+            break
+
+    with open(avatar_parameter_value_file_path,
               'r',
               encoding='utf-8-sig') as f:
         avatar_saved_parameters = json.load(f)
