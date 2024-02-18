@@ -49,7 +49,15 @@ async def resync_with_wait(second, loop):
     await loop.run_in_executor(None, do_resync)
 
 
-def reset_avatar_config_from_vrchat_config_folder():
+async def clear_queue():
+    while True:
+        try:
+            shared_queue_server_to_client.get_nowait()
+        except queue.Empty:
+            break
+
+
+def reset_osc_config_from_vrchat_config_folder():
     global NEED_SYNC_PARAMETER_TO_INDEX_DICT
     global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
     global previous_avatar_id
@@ -60,10 +68,25 @@ def reset_avatar_config_from_vrchat_config_folder():
               encoding='utf-8-sig') as f:
         avatar_osc_config = json.load(f)
 
+    NEED_SYNC_PARAMETER_TO_INDEX_DICT = {x['name'].removeprefix(f'{NEED_SYNC_PARAMETER_IDENTIFIER}/').split('|')[0]:
+                                             int(x['name'].removeprefix(f'{NEED_SYNC_PARAMETER_IDENTIFIER}/').split('|')[1])
+                                         for x in avatar_osc_config['parameters']
+                                         if x['name'].split('/')[0] == NEED_SYNC_PARAMETER_IDENTIFIER
+                                         and x['name'] not in (PARAMETER_MULTIPLIER_INDEX_VARIABLE_NAME,
+                                                               PARAMETER_MULTIPLIER_VALUE_VARIABLE_NAME,
+                                                               PARAMETER_MULTIPLIER_MANUAL_SYNC_NAME)}
+    NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT = {}
+    previous_avatar_id = changed_avatar_id
+
+    print(NEED_SYNC_PARAMETER_TO_INDEX_DICT)
+
+
+def set_avatar_parameter_value_from_vrchat_config_folder():
+    global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
     while True:
         time.sleep(1)
-        avatar_parameter_value_file_path = find_file_in_path(changed_avatar_id, VRCHAT_AVATAR_PARAMETER_VALUE_SAVED_PATH)
-        print(avatar_parameter_value_file_path)
+        avatar_parameter_value_file_path = find_file_in_path(changed_avatar_id,
+                                                             VRCHAT_AVATAR_PARAMETER_VALUE_SAVED_PATH)
         if avatar_parameter_value_file_path:
             break
 
@@ -72,36 +95,11 @@ def reset_avatar_config_from_vrchat_config_folder():
               encoding='utf-8-sig') as f:
         avatar_saved_parameters = json.load(f)
 
-    NEED_SYNC_PARAMETER_TO_INDEX_DICT = {x['name'].removeprefix(f'{NEED_SYNC_PARAMETER_IDENTIFIER}/').split('|')[0]:
-                                             int(x['name'].removeprefix(f'{NEED_SYNC_PARAMETER_IDENTIFIER}/').split('|')[1])
-                                         for x in avatar_osc_config['parameters']
-                                         if x['name'].split('/')[0] == NEED_SYNC_PARAMETER_IDENTIFIER
-                                         and x['name'] not in (PARAMETER_MULTIPLIER_INDEX_VARIABLE_NAME,
-                                                               PARAMETER_MULTIPLIER_VALUE_VARIABLE_NAME,
-                                                               PARAMETER_MULTIPLIER_MANUAL_SYNC_NAME)}
-    NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT = {NEED_SYNC_PARAMETER_TO_INDEX_DICT[x['name']]: x['value']
-                                               for x in avatar_saved_parameters['animationParameters']
-                                               if x['name'] in list(NEED_SYNC_PARAMETER_TO_INDEX_DICT.keys())}
-    previous_avatar_id = changed_avatar_id
+    for x in avatar_saved_parameters['animationParameters']:
+        if x['name'] in list(NEED_SYNC_PARAMETER_TO_INDEX_DICT.keys()):
+            NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT[NEED_SYNC_PARAMETER_TO_INDEX_DICT[x['name']]] = x['value']
 
-
-def initialize():
-    global NEED_SYNC_PARAMETER_TO_INDEX_DICT
-    global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
-    global shared_queue_server_to_client
-    global previous_avatar_id
-    global changed_avatar_id
-
-    if changed_avatar_id:
-        while True:
-            try:
-                shared_queue_server_to_client.get_nowait()
-            except queue.Empty:
-                break
-
-        reset_avatar_config_from_vrchat_config_folder()
-        print(NEED_SYNC_PARAMETER_TO_INDEX_DICT)
-        print(NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT)
+    print(NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT)
 
 
 def flag_set_avatar_changed(address, message):
@@ -141,7 +139,6 @@ def get_server_dispatcher():
 async def running_osc_server(parameter_multiplier_server_ip, parameter_multiplier_server_port):
     loop = asyncio.get_running_loop()
     while True:
-        await loop.run_in_executor(None, initialize)
         dispatcher = await loop.run_in_executor(None, get_server_dispatcher)
         flag_avatar_changed.clear()
         async_server = osc_server.AsyncIOOSCUDPServer((parameter_multiplier_server_ip, parameter_multiplier_server_port),
@@ -150,10 +147,21 @@ async def running_osc_server(parameter_multiplier_server_ip, parameter_multiplie
         transport, protocol = await async_server.create_serve_endpoint()
         print('server start')
 
-        task = asyncio.create_task(resync_with_wait(20, loop))
+        if changed_avatar_id:
+            set_avatar_parameter_task = loop.run_in_executor(None, set_avatar_parameter_value_from_vrchat_config_folder)
+            while not (set_avatar_parameter_task.done() or flag_avatar_changed.is_set()):
+                await asyncio.sleep(1)
+            set_avatar_parameter_task.cancel()
+            if set_avatar_parameter_task.done():
+                resync_task = asyncio.create_task(resync_with_wait(20, loop))
+                while not (resync_task.done() or flag_avatar_changed.is_set()):
+                    await asyncio.sleep(1)
+                resync_task.cancel()
+
         await flag_avatar_changed.wait()
-        task.cancel()
         transport.close()
+        await clear_queue()
+        await loop.run_in_executor(None, reset_osc_config_from_vrchat_config_folder)
         print(f'get avatar reset signal: {changed_avatar_id}')
 
 
@@ -161,7 +169,7 @@ def running_osc_client(shared_queue_server_to_client, vrchat_running_pc_ip, vrch
     client = udp_client.SimpleUDPClient(vrchat_running_pc_ip, vrchat_running_pc_port)
     need_queue_time_check_flag = False
     final_queue_get_time = None
-    queue_timeout = 1
+    queue_timeout = 10
     previous_index = 0
     previous_value = 0
 
