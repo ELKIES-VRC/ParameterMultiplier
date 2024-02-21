@@ -25,10 +25,8 @@ PARAMETER_MULTIPLIER_MANUAL_SYNC_NAME = f'{NEED_SYNC_PARAMETER_IDENTIFIER}/Manua
 
 shared_queue_server_to_client = Queue()
 flag_avatar_changed = asyncio.Event()
-previous_avatar_id = None
 changed_avatar_id = None
 float_to_int = [x / 127 - 1.0 for x in range(0, 255)]
-
 
 def find_file_in_path(name, path):
     for root, dirs, files in os.walk(path):
@@ -42,6 +40,16 @@ def do_resync(address=None, message=None):
     if not address or (message == 1 and address == f'{VRCHAT_OSC_PARAMETER_ROOT_ADDRESS}/{PARAMETER_MULTIPLIER_MANUAL_SYNC_NAME}'):
         for x in NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT.items():
             shared_queue_server_to_client.put(x)
+
+
+def alter_all_types_to_int(value):
+    if isinstance(value, float):
+        temp_list = [abs(x - value) for x in float_to_int]
+        return temp_list.index(min(temp_list))
+    elif isinstance(value, bool):
+        return int(value)
+    else:
+        return value
 
 
 async def resync_with_wait(second, loop):
@@ -60,7 +68,6 @@ async def clear_queue():
 def reset_osc_config_from_vrchat_config_folder():
     global NEED_SYNC_PARAMETER_TO_INDEX_DICT
     global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
-    global previous_avatar_id
     global changed_avatar_id
 
     with open(find_file_in_path(f"{changed_avatar_id}.json", VRCHAT_AVATAR_OSC_CONFIG_PATH),
@@ -76,7 +83,6 @@ def reset_osc_config_from_vrchat_config_folder():
                                                                PARAMETER_MULTIPLIER_VALUE_VARIABLE_NAME,
                                                                PARAMETER_MULTIPLIER_MANUAL_SYNC_NAME)}
     NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT = {}
-    previous_avatar_id = changed_avatar_id
 
     print(NEED_SYNC_PARAMETER_TO_INDEX_DICT)
 
@@ -114,13 +120,8 @@ def send_message_to_client(address, index, message):
     global shared_queue_server_to_client
     global NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT
     print(f'get message {index}: {message}')
-    if isinstance(message, float):
-        temp_list = [abs(x - message) for x in float_to_int]
-        send_value = (index[0], temp_list.index(min(temp_list)))
-    elif isinstance(message, bool):
-        send_value = (index[0], int(message))
-    else:
-        send_value = (index[0], message)
+
+    send_value = (index[0], alter_all_types_to_int(message))
 
     NEED_SYNC_PARAMETER_INDEX_TO_VALUE_DICT[send_value[0]] = send_value[1]
     shared_queue_server_to_client.put(send_value)
@@ -157,6 +158,13 @@ async def running_osc_server(parameter_multiplier_server_ip, parameter_multiplie
                 while not (resync_task.done() or flag_avatar_changed.is_set()):
                     await asyncio.sleep(1)
                 resync_task.cancel()
+
+        start_time = time.time()
+        while not flag_avatar_changed.is_set():
+            await asyncio.sleep(1)
+            if time.time() - start_time >= (60 * 5):
+                resync_task = loop.run_in_executor(None, do_resync)
+                start_time = time.time()
 
         await flag_avatar_changed.wait()
         transport.close()
