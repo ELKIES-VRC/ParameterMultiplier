@@ -12,8 +12,6 @@
 ### 설명
 VRChat 파라미터를 256bits 이상 사용해도 다른 유저와 파라미터 동기화를 가능하게 합니다.
 
-OSC를 사용하지 않는 방법도 있으나, 이는 차후 들어오는 유저들과 동기화를 전혀 할 수 없게 만드는 문제가 있습니다.
-
 ### 구동 테스트 환경
 1. Unity 2022.3.6f1
 2. Python 3.11.7
@@ -34,10 +32,7 @@ OSC를 사용하지 않는 방법도 있으나, 이는 차후 들어오는 유�
 * 만일 다른 사람에게 아바타가 이상하게 보인다고 들으면, Action Menu - Expressions - PM - ManualSync을 선택하세요. 모든 파라미터를 다시 동기화합니다.
 
 ### 제약사항 (알려진 이슈)
-1. 아바타 리셋을 하면 VRChat 캐시 폴더 내부에 저장된 아바타 관련 저장내용이 전부 사라져 OSC 서버가 죽어버리는 문제
-2. 월드 인스턴스에 접속한 이후에 들어오는 사람들에게 파라미터가 자동으로 동기화되지 않는 문제
-3. 사람이 많은 환경에서 알 수 없는 이유로 모든 사람에게 완벽히 파라미터가 동기화되지 않는 문제
-4. 해당 프로젝트는 실시간 동기화가 필요하지 않은 파라미터들(예 : 옷장)을 대상으로 사용하는 것을 전제로 제작되었습니다. 실시간 동기화가 필요한 (예 : 페이셜 트래킹) 파라미터에는 Sync 옵션을 사용해주세요.
+1. 해당 프로젝트는 실시간 동기화가 필요하지 않은 파라미터들(예 : 옷장)을 대상으로 사용하는 것을 전제로 제작되었습니다. 실시간 동기화가 필요한 파라미터(예 : 페이셜 트래킹)에는 Sync 옵션을 사용해주세요.
 
 ## [English]
 
@@ -50,8 +45,6 @@ Original Project : https://fuuujin.gumroad.com/l/OSCParameterSync?a=1061332563
 
 ### Description
 Enable parameter synchronization to other users even if the VRChat parameter is used more than 256 bits.
-
-There is also a way to not use OSC, but there is a problem that makes it impossible to synchronize with the incoming users after you joined the instance.
 
 ### Test Environment
 1. Unity 2022.3.6f1
@@ -73,10 +66,7 @@ There is also a way to not use OSC, but there is a problem that makes it impossi
 * If you hear that your avatar looks strange to others, select Action Menu - Expressions - PM - ManualSync. Resynchronize all parameters.
 
 ### Limitations (Known Issues)
-1. Resetting an avatar would cause the OSC server to die as all avatar-related saves inside the VRChat cache folder would be lost
-2. Parameters are not automatically synchronized for people who come in after you've joined world instance
-3. Parameters not syncing perfectly for everyone for unknown reasons in a crowded environment
-4. The project is intended to target parameters that do not require real-time synchronization (e.g., closet). Please use Sync options for parameters that require real-time synchronization (e.g., facial tracking).
+1. The project is intended to target parameters that do not require real-time synchronization (e.g., closet). Please use Sync options for parameters that require real-time synchronization (e.g., facial tracking).
 
 
 ## License
@@ -104,6 +94,22 @@ Link : https://github.com/bdunderscore/modular-avatar
 MIT License
 
 Copyright (c) 2022 bd_
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+OpenSource Name : ndmf
+
+Link : https://github.com/bdunderscore/ndmf
+
+MIT License
+
+Copyright (c) 2023 bd_ (and other contributors)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
