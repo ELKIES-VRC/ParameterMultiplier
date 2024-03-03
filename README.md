@@ -17,7 +17,7 @@ VRChat 파라미터를 256bits 이상 사용해도 다른 유저와 파라미터
 2. Python 3.11.7
 
 ### 라이브러리
-1. Modular Avatar (Modular Avatar 1.8.4 / NDMF 1.3.3)
+1. Modular Avatar (Modular Avatar 1.9.4 / NDMF 1.3.6)
 2. Python-OSC (1.8.3)
 
 ### 사용방법
@@ -51,7 +51,7 @@ Enable parameter synchronization to other users even if the VRChat parameter is 
 2. Python 3.11.7
 
 ### Library
-1. Modular Avatar (Modular Avatar 1.8.4 / NDMF 1.3.3)
+1. Modular Avatar (Modular Avatar 1.9.4 / NDMF 1.3.6)
 2. Python-OSC (1.8.3)
 
 ### How to use
